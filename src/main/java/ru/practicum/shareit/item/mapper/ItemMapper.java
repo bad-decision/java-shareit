@@ -10,8 +10,10 @@ import ru.practicum.shareit.item.model.Item;
 @Mapper
 public interface ItemMapper {
     ItemDto mapToItemDto(Item item);
+
     @Mapping(target = "available", source = "available")
     Item mapToItem(ItemAddDto itemDto);
+
     @Mapping(target = "available", source = "available")
     Item mapToItem(ItemUpdateDto itemDto);
 }

@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ItemRepository extends Repository<Item, Long> {
     List<Item> getItemsBy(Long ownerId);
+
     List<Item> searchItemsBy(String text, boolean isAvailable);
 }
