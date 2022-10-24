@@ -59,6 +59,15 @@ public class ErrorHandlingControllerAdvice extends ResponseEntityExceptionHandle
         return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
+    @ExceptionHandler(value = RuntimeException.class)
+    protected ResponseEntity<Object> constraintViolationException(RuntimeException ex, WebRequest request) {
+        log.error("Runtime error: {}", ex.getMessage(), ex);
+        Map<String, Object> body = getGeneralErrorBody(HttpStatus.INTERNAL_SERVER_ERROR, request);
+        List<String> errors = Arrays.stream(ex.getMessage().split(", ")).collect(Collectors.toList());
+        body.put(REASONS, errors);
+        return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers,
