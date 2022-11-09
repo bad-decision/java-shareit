@@ -14,6 +14,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.practicum.shareit.common.exception.ConflictWithExistException;
 import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.common.exception.PermissionException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
@@ -33,6 +34,14 @@ public class ErrorHandlingControllerAdvice extends ResponseEntityExceptionHandle
     private static final String ERROR = "error";
     private static final String PATH = "path";
     private static final String REASONS = "reasons";
+
+    @ExceptionHandler(value = {PermissionException.class, IllegalArgumentException.class})
+    protected ResponseEntity<Object> handleNotFound(Exception ex, WebRequest request) {
+        log.error("Exception error: {}", ex.getMessage(), ex);
+        Map<String, Object> body = getGeneralErrorBody(HttpStatus.BAD_REQUEST, request);
+        body.put(ERROR, ex.getMessage());
+        return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
 
     @ExceptionHandler(value = NotFoundException.class)
     protected ResponseEntity<Object> handleNotFound(NotFoundException ex, WebRequest request) {

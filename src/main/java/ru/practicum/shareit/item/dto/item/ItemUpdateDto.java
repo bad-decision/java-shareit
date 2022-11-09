@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.dto.item;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,9 +8,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ItemDto {
-    private Long id;
+public class ItemUpdateDto {
     private String name;
     private String description;
-    private boolean available;
+    private Boolean available;
 }
