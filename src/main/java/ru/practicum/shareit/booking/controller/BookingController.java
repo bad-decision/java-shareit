@@ -38,8 +38,7 @@ public class BookingController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<BookingDto> getBookerBookings(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                              @RequestParam("state") Optional<String> stateOpt) {
-        String state = stateOpt.orElse(String.valueOf(BookingStateDto.ALL));
+                                              @RequestParam(defaultValue = "ALL") String state) {
         log.info("Request to get booker bookings: " + bookerId + ", state: " + state);
         return bookingService.getBookerBookings(bookerId, state)
                 .stream()
@@ -50,8 +49,7 @@ public class BookingController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/owner")
     public List<BookingDto> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                             @RequestParam("state") Optional<String> stateOpt) {
-        String state = stateOpt.orElse(String.valueOf(BookingStateDto.ALL));
+                                             @RequestParam(defaultValue = "ALL") String state) {
         log.info("Request to get owner bookings: " + ownerId + ", state: " + state);
         return bookingService.getOwnerBookings(ownerId, state)
                 .stream()
