@@ -36,9 +36,14 @@ public class BookingController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<BookingDto> getBookerBookings(@RequestHeader("X-Sharer-User-Id") Long bookerId,
-                                              @RequestParam(defaultValue = "ALL") String state) {
+                                              @RequestParam(defaultValue = "ALL") String state,
+                                              @RequestParam(defaultValue = "0") Integer from,
+                                              @RequestParam(defaultValue = "10") Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+        }
         log.info("Request to get booker bookings: " + bookerId + ", state: " + state);
-        return bookingService.getBookerBookings(bookerId, state)
+        return bookingService.getBookerBookings(bookerId, state, from, size)
                 .stream()
                 .map(bookingMapper::mapToBookingDto)
                 .collect(Collectors.toList());
@@ -47,9 +52,14 @@ public class BookingController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/owner")
     public List<BookingDto> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                             @RequestParam(defaultValue = "ALL") String state) {
+                                             @RequestParam(defaultValue = "ALL") String state,
+                                             @RequestParam(defaultValue = "0") Integer from,
+                                             @RequestParam(defaultValue = "10") Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+        }
         log.info("Request to get owner bookings: " + ownerId + ", state: " + state);
-        return bookingService.getOwnerBookings(ownerId, state)
+        return bookingService.getOwnerBookings(ownerId, state, from, size)
                 .stream()
                 .map(bookingMapper::mapToBookingDto)
                 .collect(Collectors.toList());

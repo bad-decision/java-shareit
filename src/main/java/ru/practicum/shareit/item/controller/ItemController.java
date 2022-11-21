@@ -34,9 +34,14 @@ public class ItemController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                                  @RequestParam(defaultValue = "0") Integer from,
+                                  @RequestParam(defaultValue = "10") Integer size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         log.info("Request to get user items by ownerId: " + ownerId);
-        return itemService.getItems(ownerId);
+        return itemService.getItems(ownerId, from, size);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -49,9 +54,14 @@ public class ItemController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text) {
+    public List<ItemDto> searchItems(@RequestParam String text,
+                                     @RequestParam(defaultValue = "0") Integer from,
+                                     @RequestParam(defaultValue = "10") Integer size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         log.info("Request to search items by text: " + text);
-        return itemService.searchItems(text, true)
+        return itemService.searchItems(text, true, from, size)
                 .stream()
                 .map(itemMapper::mapToItemDto)
                 .collect(Collectors.toList());
@@ -61,9 +71,9 @@ public class ItemController {
     @PostMapping
     public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") Long ownerId,
                            @Valid @RequestBody ItemAddDto itemAddDto) {
-        Item item = itemMapper.mapToItem(itemAddDto);
-        log.info("Request to add new item: " + item);
-        item = itemService.addItem(ownerId, item);
+        itemAddDto.setOwnerId(ownerId);
+        log.info("Request to add new item: " + itemAddDto);
+        Item item = itemService.addItem(itemAddDto);
         return itemMapper.mapToItemDto(item);
     }
 
