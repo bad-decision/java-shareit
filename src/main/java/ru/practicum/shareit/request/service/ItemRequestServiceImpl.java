@@ -66,7 +66,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         User itemRequestOwner = userRepository.findById(dto.getItemRequestOwnerId())
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + dto.getItemRequestOwnerId()));
         itemRequest.setOwner(itemRequestOwner);
-        itemRequestRepository.save(itemRequest);
+        itemRequest = itemRequestRepository.save(itemRequest);
 
         return itemRequestMapper.mapToItemRequestDto(itemRequest);
     }
