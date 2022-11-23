@@ -18,6 +18,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.common.exception.PermissionException;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -27,6 +28,10 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 @SpringBootTest
 class BookingServiceTest {
@@ -34,6 +39,7 @@ class BookingServiceTest {
     private Item item;
     private User booker;
     private Booking booking;
+    private Comment comment;
     private BookingAddDto bookingAddDto;
     @Mock
     private ItemRepository itemRepository;
@@ -50,7 +56,11 @@ class BookingServiceTest {
         booking = createDummyBooking();
         booker = createDummyUser(2L);
         item = createDummyItem();
+        comment = createDummyComment();
         bookingAddDto = createDummyBookingAddDto();
+
+        booking.setItem(item);
+        item.setComments(Set.of(comment));
     }
 
     @Test
@@ -161,7 +171,7 @@ class BookingServiceTest {
     }
 
     @Test
-    public void getBookerBookings_shouldReturnBookings() {
+    public void getWaitingBookerBookings_shouldReturnBookings() {
         Pageable pageable = PageRequest.of(1, 1, Sort.by("start").descending());
         Mockito
                 .when(userRepository.findById(booking.getBooker().getId()))
@@ -174,6 +184,173 @@ class BookingServiceTest {
         Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
         Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
         Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getAllBookerBookings_shouldReturnBookings() {
+        Pageable pageable = PageRequest.of(1, 1, Sort.by("start").descending());
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByBookerAndStatus(booking.getBooker().getId(), pageable))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getBookerBookings(booking.getBooker().getId(), "ALL", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getPastBookerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByBookerAndEndBefore(anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getBookerBookings(booking.getBooker().getId(), "PAST", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getCurrentBookerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByBookerAndStartBeforeAndEndAfter(anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getBookerBookings(booking.getBooker().getId(), "CURRENT", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getFutureBookerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByBookerAndStartAfter(anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getBookerBookings(booking.getBooker().getId(), "FUTURE", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getRejectedBookerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByBookerAndStatus(anyLong(), any(BookingStatus.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getBookerBookings(booking.getBooker().getId(), "REJECTED", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getAllOwnerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByOwnerAndStatus(anyLong(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getOwnerBookings(booking.getBooker().getId(), "ALL", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getPastOwnerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByOwnerAndEndBefore(anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getOwnerBookings(booking.getBooker().getId(), "PAST", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getCurrentOwnerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByOwnerAndStartBeforeAndEndAfter(anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getOwnerBookings(booking.getBooker().getId(), "CURRENT", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getFutureOwnerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByOwnerAndStartAfter(anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getOwnerBookings(booking.getBooker().getId(), "FUTURE", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getRejectedOwnerBookings_shouldReturnBookings() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Mockito
+                .when(bookingRepository.getBookingsByOwnerAndStatus(anyLong(), any(BookingStatus.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(booking)));
+        List<Booking> bookings = bookingService.getOwnerBookings(booking.getBooker().getId(), "REJECTED", 1, 1);
+        Assertions.assertEquals(1, bookings.size());
+        Assertions.assertEquals(booking.getStatus(), bookings.get(0).getStatus());
+        Assertions.assertEquals(booking.getStart(), bookings.get(0).getStart());
+        Assertions.assertEquals(booking.getEnd(), bookings.get(0).getEnd());
+    }
+
+    @Test
+    public void getInCorrectOwnerBookings_shouldThrowException() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Assertions.assertThrows(RuntimeException.class, () -> bookingService.getOwnerBookings(booking.getBooker().getId(), "INCORRECT", 1, 1));
+    }
+
+    @Test
+    public void getInCorrectBookerBookings_shouldThrowException() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Assertions.assertThrows(RuntimeException.class, () -> bookingService.getBookerBookings(booking.getBooker().getId(), "INCOREECT", 1, 1));
     }
 
     private Booking createDummyBooking() {
@@ -220,5 +397,14 @@ class BookingServiceTest {
         bookingAddDto.setStart(LocalDateTime.now().plusDays(1));
         bookingAddDto.setEnd(LocalDateTime.now().plusDays(2));
         return bookingAddDto;
+    }
+
+    private Comment createDummyComment() {
+        Comment comment = new Comment();
+        comment.setCreated(LocalDateTime.now());
+        comment.setText("test");
+        comment.setAuthor(createDummyUser(1L));
+        comment.setId(1L);
+        return comment;
     }
 }

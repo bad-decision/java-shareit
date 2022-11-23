@@ -139,7 +139,7 @@ public class ItemServiceImpl implements ItemService {
         comment.setItem(itemRepository.getReferenceById(dto.getItemId()));
         comment.setAuthor(userRepository.getReferenceById(dto.getAuthorId()));
         comment.setCreated(LocalDateTime.now());
-        commentRepository.save(comment);
+        comment = commentRepository.save(comment);
         return comment;
     }
 

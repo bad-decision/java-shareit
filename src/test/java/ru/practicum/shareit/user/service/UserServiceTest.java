@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.practicum.shareit.common.exception.ConflictWithExistException;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -102,5 +103,16 @@ class UserServiceTest {
         userService.deleteUser(user.getId());
         Mockito.verify(userRepository, Mockito.times(1))
                 .deleteById(user.getId());
+    }
+
+    @Test
+    public void updateUser_shouldThrowException() {
+        Mockito
+                .when(userRepository.findById(user.getId()))
+                .thenReturn(Optional.of(user));
+        Mockito
+                .when(userRepository.getByEmail(user.getEmail()))
+                .thenReturn(Optional.ofNullable(user));
+        Assertions.assertThrows(ConflictWithExistException.class, () -> userService.updateUser(user));
     }
 }

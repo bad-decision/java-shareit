@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestAddDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
@@ -22,6 +23,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @SpringBootTest
 class ItemRequestServiceTest {
@@ -157,7 +159,16 @@ class ItemRequestServiceTest {
         itemRequest.setId(1L);
         itemRequest.setDescription("test request");
         itemRequest.setOwner(createDummyUser());
+        itemRequest.setItems(Set.of(createDummyItem()));
         return itemRequest;
+    }
+
+    private Item createDummyItem() {
+        Item item = new Item();
+        item.setName("test");
+        item.setDescription("test desc");
+        item.setId(1L);
+        return item;
     }
 
     private User createDummyUser() {

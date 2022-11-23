@@ -46,7 +46,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + bookerId));
 
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
-        Page<Booking> bookings;
+        Page<Booking> bookings = null;
         switch (BookingStateDto.valueOf(state)) {
             case ALL:
                 bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, pageable);
@@ -66,8 +66,6 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED:
                 bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, BookingStatus.REJECTED, pageable);
                 break;
-            default:
-                throw new RuntimeException("Unsupported value of state: " + state);
         }
         return bookings.stream()
                 .collect(Collectors.toList());
@@ -83,7 +81,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + ownerId));
 
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
-        Page<Booking> bookings;
+        Page<Booking> bookings = null;
         switch (BookingStateDto.valueOf(state)) {
             case ALL:
                 bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, pageable);
@@ -103,8 +101,6 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED:
                 bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, BookingStatus.REJECTED, pageable);
                 break;
-            default:
-                throw new RuntimeException("Unsupported value of state: " + state);
         }
         return bookings.stream()
                 .collect(Collectors.toList());

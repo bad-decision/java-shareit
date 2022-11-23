@@ -11,12 +11,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.comment.CommentAddDto;
 import ru.practicum.shareit.item.dto.item.ItemAddDto;
 import ru.practicum.shareit.item.dto.item.ItemDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -25,14 +28,22 @@ import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 @SpringBootTest
 class ItemServiceTest {
     private ItemService itemService;
     private Item item;
     private ItemAddDto itemAddDto;
+    private final CommentAddDto commentAddDto = new CommentAddDto("test", 1L, 1L);
+    private Booking booking;
+    private Comment comment;
     @Mock
     private ItemRepository itemRepository;
     @Mock
@@ -56,6 +67,10 @@ class ItemServiceTest {
                 commentRepository, itemMapper, bookingMapper, commentMapper);
         item = createDummyItem();
         itemAddDto = createDummyItemAddDto();
+        booking = createDummyBooking();
+        comment = createDummyComment();
+        item.setBookings(Set.of(booking));
+        item.setComments(Set.of(comment));
     }
 
     @Test
@@ -107,7 +122,7 @@ class ItemServiceTest {
     public void getItem_shouldReturnItem() {
         Mockito
                 .when(itemRepository.findByIdWithComments(item.getId()))
-                .thenReturn(Optional.ofNullable(item));
+                .thenReturn(Optional.of(item));
         ItemDto dto = itemService.getItem(item.getId(), item.getOwner().getId());
         Assertions.assertEquals(dto.getId(), item.getId());
         Assertions.assertEquals(dto.getName(), item.getName());
@@ -175,6 +190,23 @@ class ItemServiceTest {
     }
 
     @Test
+    public void addComment_shouldReturnComment() {
+        Mockito
+                .when(bookingRepository.getBookingsByBookerAndItem(anyLong(), anyLong()))
+                .thenReturn(List.of(booking));
+        Mockito
+                .when(userRepository.findById(item.getOwner().getId()))
+                .thenReturn(Optional.ofNullable(item.getOwner()));
+        Mockito
+                .when(commentRepository.save(any()))
+                .thenReturn(comment);
+
+        Comment comment = itemService.addComment(commentAddDto);
+        Assertions.assertNotNull(comment.getId());
+        Assertions.assertEquals(comment.getText(), commentAddDto.getText());
+    }
+
+    @Test
     public void searchItems_shouldReturnItems() {
         int from = 1;
         int size = 1;
@@ -216,6 +248,15 @@ class ItemServiceTest {
         return owner;
     }
 
+    private Comment createDummyComment() {
+        Comment comment = new Comment();
+        comment.setCreated(LocalDateTime.now());
+        comment.setText(commentAddDto.getText());
+        comment.setAuthor(createDummyUser());
+        comment.setId(1L);
+        return comment;
+    }
+
     private ItemAddDto createDummyItemAddDto() {
         ItemAddDto itemAddDto = new ItemAddDto();
         itemAddDto.setOwnerId(1L);
@@ -223,5 +264,14 @@ class ItemServiceTest {
         itemAddDto.setName(item.getName());
         itemAddDto.setName(item.getDescription());
         return itemAddDto;
+    }
+
+    private Booking createDummyBooking() {
+        Booking booking = new Booking();
+        booking.setItem(item);
+        booking.setBooker(createDummyUser());
+        booking.setStart(LocalDateTime.now().minusDays(2));
+        booking.setEnd(LocalDateTime.now().minusDays(1));
+        return booking;
     }
 }

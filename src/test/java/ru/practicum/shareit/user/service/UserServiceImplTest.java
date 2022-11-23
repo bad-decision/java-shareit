@@ -32,4 +32,25 @@ class UserServiceImplTest {
         Assertions.assertEquals(newUser.getName(), user.getName());
         Assertions.assertEquals(newUser.getEmail(), user.getEmail());
     }
+
+    @Test
+    public void updateUser_shouldUpdateUser() {
+        User newUser = new User();
+        newUser.setEmail("test1@mail.ru");
+        newUser.setName("test");
+        userService.addUser(newUser);
+
+        User updateUser = new User();
+        updateUser.setEmail("updates@mail.ru");
+        updateUser.setName("update");
+        updateUser.setId(newUser.getId());
+
+        userService.updateUser(updateUser);
+        TypedQuery<User> query = em.createQuery("Select u from User u where u.email = :email", User.class);
+        User user = query.setParameter("email", newUser.getEmail()).getSingleResult();
+
+        Assertions.assertNotNull(user.getId());
+        Assertions.assertEquals(newUser.getName(), user.getName());
+        Assertions.assertEquals(newUser.getEmail(), user.getEmail());
+    }
 }
