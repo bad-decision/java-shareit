@@ -24,7 +24,7 @@ class ItemRequestServiceImplTest {
     private final UserService userService;
     private final ItemService itemService;
     private final ItemRequestService itemRequestService;
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
     @Test
     public void addItemRequest_shouldAddNewItemRequest() {
@@ -52,7 +52,7 @@ class ItemRequestServiceImplTest {
         itemRequestAddDto.setItemRequestOwnerId(booker.getId());
         ItemRequestDto addItemRequest = itemRequestService.addItemRequest(itemRequestAddDto);
 
-        TypedQuery<ItemRequest> query = em.createQuery("select ir from ItemRequest ir where ir.id = :id", ItemRequest.class);
+        TypedQuery<ItemRequest> query = entityManager.createQuery("select ir from ItemRequest ir where ir.id = :id", ItemRequest.class);
         ItemRequest itemRequest = query.setParameter("id", addItemRequest.getId()).getSingleResult();
 
         Assertions.assertNotNull(itemRequest.getId());

@@ -100,7 +100,7 @@ public class ItemRequestControllerTest {
     @Test
     public void getAllItemRequests_shouldReturnBadRequest() throws Exception {
         when(service.getAllItemRequests(anyLong(), anyInt(), anyInt()))
-                .thenReturn(List.of(itemRequestDto));
+                .thenThrow(IllegalArgumentException.class);
 
         mvc.perform(get("/requests/all?size=0")
                         .header("X-Sharer-User-Id", "1"))

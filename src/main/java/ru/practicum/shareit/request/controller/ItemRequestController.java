@@ -33,8 +33,6 @@ public class ItemRequestController {
     public List<ItemRequestDto> getAllItemRequests(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                    @RequestParam(defaultValue = "0") Integer from,
                                                    @RequestParam(defaultValue = "10") Integer size) {
-        if (from < 0 || size <= 0)
-            throw new IllegalArgumentException("Argument size or from is incorrect");
         log.info("Request to get all item requests from: " + from + ", size: " + size);
         return itemRequestService.getAllItemRequests(userId, from, size);
     }

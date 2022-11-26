@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.common.exception.PermissionException;
@@ -29,6 +30,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -45,14 +49,37 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public List<ItemDto> getItems(Long ownerId, int from, int size) {
-        Pageable pageable = PageRequest.of(from / size, size);
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
 
+        Pageable pageable = PageRequest.of(from / size, size);
         Page<Item> items = itemRepository.getOwnerItemsWithBookingsAndComments(ownerId, pageable);
+        List<Long> itemsId = items.map(Item::getId).toList();
+        Map<Long, Set<Comment>> commentsByItemId = commentRepository.getCommentsByItemsId(itemsId)
+                .stream()
+                .collect(groupingBy(comment -> comment.getItem().getId(), toSet()));
+        Map<Long, Set<Booking>> bookingsByItemId = bookingRepository.getBookingsByItemsId(itemsId, BookingStatus.APPROVED)
+                .stream()
+                .collect(groupingBy(booking -> booking.getItem().getId(), toSet()));
+
         List<ItemDto> itemsDto = new ArrayList<>();
         for (Item item : items) {
-            ItemDto dto = itemMapper.mapToItemDto(item);
-            dto.setLastBooking(bookingMapper.mapToItemBookingDto(findLastBooking(item.getBookings())));
-            dto.setNextBooking(bookingMapper.mapToItemBookingDto(findNextBooking(item.getBookings())));
+            Set<Booking> itemBookings = bookingsByItemId.getOrDefault(item.getId(), new HashSet<>());
+            Set<Comment> itemComments = commentsByItemId.getOrDefault(item.getId(), new HashSet<>());
+            Booking lastBooking = findLastBooking(itemBookings);
+            Booking nextBooking = findNextBooking(itemBookings);
+            ItemDto dto = ItemDto.builder()
+                    .id(item.getId())
+                    .requestId(item.getItemRequest() != null ? item.getItemRequest().getId() : null)
+                    .description(item.getDescription())
+                    .available(item.getAvailable())
+                    .name(item.getName())
+                    .lastBooking(bookingMapper.mapToItemBookingDto(lastBooking))
+                    .nextBooking(bookingMapper.mapToItemBookingDto(nextBooking))
+                    .comments(itemComments.stream()
+                            .map(commentMapper::mapToCommentDto)
+                            .collect(toSet()))
+                    .build();
             itemsDto.add(dto);
         }
         return itemsDto;
@@ -122,6 +149,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public List<Item> searchItems(String text, boolean isAvailable, int from, int size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         if (text == null || text.isEmpty()) return List.of();
 
         Pageable pageable = PageRequest.of(from / size, size);

@@ -25,7 +25,7 @@ class BookingServiceImplTest {
     private final UserService userService;
     private final ItemService itemService;
     private final BookingService bookingService;
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
     @Test
     public void addBooking_shouldAddNewBooking() {
@@ -56,7 +56,7 @@ class BookingServiceImplTest {
 
         Booking addedBooking = bookingService.addBooking(bookingAddDto);
 
-        TypedQuery<Booking> query = em.createQuery("select b from Booking b where b.id = :id", Booking.class);
+        TypedQuery<Booking> query = entityManager.createQuery("select b from Booking b where b.id = :id", Booking.class);
         Booking booking = query.setParameter("id", addedBooking.getId()).getSingleResult();
 
         Assertions.assertNotNull(booking.getId());

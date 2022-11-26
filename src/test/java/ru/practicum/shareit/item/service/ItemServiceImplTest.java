@@ -20,7 +20,7 @@ import javax.persistence.TypedQuery;
 class ItemServiceImplTest {
     private final UserService userService;
     private final ItemService itemService;
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
     @Test
     public void addItem_shouldAddNewItem() {
@@ -38,7 +38,7 @@ class ItemServiceImplTest {
 
         Item addedItem = itemService.addItem(itemAddDto);
 
-        TypedQuery<Item> query = em.createQuery("select i from Item i where i.id = :id", Item.class);
+        TypedQuery<Item> query = entityManager.createQuery("select i from Item i where i.id = :id", Item.class);
         Item item = query.setParameter("id", addedItem.getId()).getSingleResult();
 
         Assertions.assertNotNull(item.getId());

@@ -57,9 +57,6 @@ public class ItemController {
     public List<ItemDto> searchItems(@RequestParam String text,
                                      @RequestParam(defaultValue = "0") Integer from,
                                      @RequestParam(defaultValue = "10") Integer size) {
-        if (from < 0 || size <= 0)
-            throw new IllegalArgumentException("Argument size or from is incorrect");
-
         log.info("Request to search items by text: " + text);
         return itemService.searchItems(text, true, from, size)
                 .stream()

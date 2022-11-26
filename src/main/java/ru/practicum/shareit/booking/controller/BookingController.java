@@ -39,9 +39,6 @@ public class BookingController {
                                               @RequestParam(defaultValue = "ALL") String state,
                                               @RequestParam(defaultValue = "0") Integer from,
                                               @RequestParam(defaultValue = "10") Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new IllegalArgumentException("Argument size or from is incorrect");
-        }
         log.info("Request to get booker bookings: " + bookerId + ", state: " + state);
         return bookingService.getBookerBookings(bookerId, state, from, size)
                 .stream()
@@ -55,9 +52,6 @@ public class BookingController {
                                              @RequestParam(defaultValue = "ALL") String state,
                                              @RequestParam(defaultValue = "0") Integer from,
                                              @RequestParam(defaultValue = "10") Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new IllegalArgumentException("Argument size or from is incorrect");
-        }
         log.info("Request to get owner bookings: " + ownerId + ", state: " + state);
         return bookingService.getOwnerBookings(ownerId, state, from, size)
                 .stream()

@@ -39,7 +39,6 @@ class BookingServiceTest {
     private Item item;
     private User booker;
     private Booking booking;
-    private Comment comment;
     private BookingAddDto bookingAddDto;
     @Mock
     private ItemRepository itemRepository;
@@ -56,7 +55,7 @@ class BookingServiceTest {
         booking = createDummyBooking();
         booker = createDummyUser(2L);
         item = createDummyItem();
-        comment = createDummyComment();
+        Comment comment = createDummyComment();
         bookingAddDto = createDummyBookingAddDto();
 
         booking.setItem(item);
@@ -351,6 +350,22 @@ class BookingServiceTest {
                 .when(userRepository.findById(booking.getBooker().getId()))
                 .thenReturn(Optional.ofNullable(booking.getBooker()));
         Assertions.assertThrows(RuntimeException.class, () -> bookingService.getBookerBookings(booking.getBooker().getId(), "INCOREECT", 1, 1));
+    }
+
+    @Test
+    public void getBookerBookings_shouldThrowException() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Assertions.assertThrows(RuntimeException.class, () -> bookingService.getBookerBookings(booking.getBooker().getId(), "ALL", 1, 0));
+    }
+
+    @Test
+    public void getOwnerBookings_shouldThrowException() {
+        Mockito
+                .when(userRepository.findById(booking.getBooker().getId()))
+                .thenReturn(Optional.ofNullable(booking.getBooker()));
+        Assertions.assertThrows(RuntimeException.class, () -> bookingService.getOwnerBookings(booking.getBooker().getId(), "ALL", 1, 0));
     }
 
     private Booking createDummyBooking() {

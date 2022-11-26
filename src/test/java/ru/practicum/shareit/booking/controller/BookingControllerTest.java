@@ -103,7 +103,7 @@ public class BookingControllerTest {
     @Test
     public void getBookerBookings_shouldThrowException() throws Exception {
         when(service.getBookerBookings(anyLong(), anyString(), anyInt(), anyInt()))
-                .thenReturn(List.of(booking));
+                .thenThrow(IllegalArgumentException.class);
 
         mvc.perform(get("/bookings?size=0")
                         .header("X-Sharer-User-Id", "1"))
@@ -124,7 +124,7 @@ public class BookingControllerTest {
     @Test
     public void getOwnerBookings_shouldThrowException() throws Exception {
         when(service.getOwnerBookings(anyLong(), anyString(), anyInt(), anyInt()))
-                .thenReturn(List.of(booking));
+                .thenThrow(IllegalArgumentException.class);
 
         mvc.perform(get("/bookings/owner?size=0")
                         .header("X-Sharer-User-Id", "1"))

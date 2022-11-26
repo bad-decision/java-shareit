@@ -50,6 +50,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getAllItemRequests(Long userId, int from, int size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
 

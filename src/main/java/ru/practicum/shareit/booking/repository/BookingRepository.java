@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+    @Query("SELECT b FROM Booking b WHERE b.item.id IN (:itemsId) AND b.status = :status ORDER BY b.start")
+    List<Booking> getBookingsByItemsId(List<Long> itemsId, BookingStatus status);
+
     @Query("SELECT b FROM Booking b WHERE b.item.id=:itemId AND " +
             "(b.start BETWEEN :startDate AND :endDate OR b.end BETWEEN :startDate AND :endDate)")
     List<Booking> getIntersectedBookings(Long itemId, LocalDateTime startDate, LocalDateTime endDate);

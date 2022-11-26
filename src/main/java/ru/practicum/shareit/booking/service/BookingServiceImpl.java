@@ -39,6 +39,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<Booking> getBookerBookings(Long bookerId, String state, int from, int size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         if (!EnumUtils.isValidEnum(BookingStateDto.class, state))
             throw new IllegalArgumentException("Unknown state: " + state);
 
@@ -74,6 +77,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public List<Booking> getOwnerBookings(Long ownerId, String state, int from, int size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         if (!EnumUtils.isValidEnum(BookingStateDto.class, state))
             throw new IllegalArgumentException("Unknown state: " + state);
 
