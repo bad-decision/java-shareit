@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.model;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -17,7 +16,6 @@ import java.util.List;
  */
 @Getter
 @Setter
-@EqualsAndHashCode(exclude = {"items", "bookings", "comments"})
 @ToString(exclude = {"items", "bookings", "comments"})
 @Entity
 @Table(name = "Users", schema = "Public")

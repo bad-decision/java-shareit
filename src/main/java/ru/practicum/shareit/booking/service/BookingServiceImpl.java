@@ -2,6 +2,10 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingAddDto;
@@ -34,72 +38,78 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Booking> getBookerBookings(Long bookerId, String state) {
+    public List<Booking> getBookerBookings(Long bookerId, String state, int from, int size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         if (!EnumUtils.isValidEnum(BookingStateDto.class, state))
             throw new IllegalArgumentException("Unknown state: " + state);
 
         userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + bookerId));
 
-        List<Booking> bookings;
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
+        Page<Booking> bookings = null;
         switch (BookingStateDto.valueOf(state)) {
             case ALL:
-                bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId);
+                bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, pageable);
                 break;
             case PAST:
-                bookings = bookingRepository.getBookingsByBookerAndEndBefore(bookerId, LocalDateTime.now());
+                bookings = bookingRepository.getBookingsByBookerAndEndBefore(bookerId, LocalDateTime.now(), pageable);
                 break;
             case CURRENT:
-                bookings = bookingRepository.getBookingsByBookerAndStartBeforeAndEndAfter(bookerId, LocalDateTime.now());
+                bookings = bookingRepository.getBookingsByBookerAndStartBeforeAndEndAfter(bookerId, LocalDateTime.now(), pageable);
                 break;
             case FUTURE:
-                bookings = bookingRepository.getBookingsByBookerAndStartAfter(bookerId, LocalDateTime.now());
+                bookings = bookingRepository.getBookingsByBookerAndStartAfter(bookerId, LocalDateTime.now(), pageable);
                 break;
             case WAITING:
-                bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, BookingStatus.WAITING);
+                bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, BookingStatus.WAITING, pageable);
                 break;
             case REJECTED:
-                bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, BookingStatus.REJECTED);
+                bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, BookingStatus.REJECTED, pageable);
                 break;
-            default:
-                throw new RuntimeException("Unsupported value of state: " + state);
         }
-        return bookings.stream().sorted((x, y) -> y.getStart().compareTo(x.getStart())).collect(Collectors.toList());
+        return bookings.stream()
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Booking> getOwnerBookings(Long ownerId, String state) {
+    public List<Booking> getOwnerBookings(Long ownerId, String state, int from, int size) {
+        if (from < 0 || size <= 0)
+            throw new IllegalArgumentException("Argument size or from is incorrect");
+
         if (!EnumUtils.isValidEnum(BookingStateDto.class, state))
             throw new IllegalArgumentException("Unknown state: " + state);
 
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + ownerId));
 
-        List<Booking> bookings;
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
+        Page<Booking> bookings = null;
         switch (BookingStateDto.valueOf(state)) {
             case ALL:
-                bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId);
+                bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, pageable);
                 break;
             case PAST:
-                bookings = bookingRepository.getBookingsByOwnerAndEndBefore(ownerId, LocalDateTime.now());
+                bookings = bookingRepository.getBookingsByOwnerAndEndBefore(ownerId, LocalDateTime.now(), pageable);
                 break;
             case CURRENT:
-                bookings = bookingRepository.getBookingsByOwnerAndStartBeforeAndEndAfter(ownerId, LocalDateTime.now());
+                bookings = bookingRepository.getBookingsByOwnerAndStartBeforeAndEndAfter(ownerId, LocalDateTime.now(), pageable);
                 break;
             case FUTURE:
-                bookings = bookingRepository.getBookingsByOwnerAndStartAfter(ownerId, LocalDateTime.now());
+                bookings = bookingRepository.getBookingsByOwnerAndStartAfter(ownerId, LocalDateTime.now(), pageable);
                 break;
             case WAITING:
-                bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, BookingStatus.WAITING);
+                bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, BookingStatus.WAITING, pageable);
                 break;
             case REJECTED:
-                bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, BookingStatus.REJECTED);
+                bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, BookingStatus.REJECTED, pageable);
                 break;
-            default:
-                throw new RuntimeException("Unsupported value of state: " + state);
         }
-        return bookings.stream().sorted((x, y) -> y.getStart().compareTo(x.getStart())).collect(Collectors.toList());
+        return bookings.stream()
+                .collect(Collectors.toList());
     }
 
     @Override
