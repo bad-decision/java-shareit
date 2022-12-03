@@ -62,6 +62,8 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED:
                 bookings = bookingRepository.getBookingsByBookerAndStatus(bookerId, BookingStatus.REJECTED, pageable);
                 break;
+            default:
+                throw new IllegalArgumentException("Not supported state: " + state);
         }
         return bookings.stream()
                 .collect(Collectors.toList());
@@ -94,6 +96,8 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED:
                 bookings = bookingRepository.getBookingsByOwnerAndStatus(ownerId, BookingStatus.REJECTED, pageable);
                 break;
+            default:
+                throw new IllegalArgumentException("Not supported state: " + state);
         }
         return bookings.stream()
                 .collect(Collectors.toList());
