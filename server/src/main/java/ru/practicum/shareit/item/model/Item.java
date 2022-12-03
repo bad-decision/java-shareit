@@ -12,9 +12,6 @@ import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Getter
 @Setter
 @EqualsAndHashCode(exclude = {"owner", "comments", "bookings", "itemRequest"})

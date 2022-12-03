@@ -7,9 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Getter
 @Setter
 @AllArgsConstructor

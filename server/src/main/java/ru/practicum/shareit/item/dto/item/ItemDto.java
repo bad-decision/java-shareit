@@ -6,9 +6,6 @@ import ru.practicum.shareit.item.dto.comment.CommentDto;
 
 import java.util.Set;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Getter
 @Setter
 @Builder

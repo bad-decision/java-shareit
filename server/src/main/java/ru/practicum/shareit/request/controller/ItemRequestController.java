@@ -11,9 +11,6 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import javax.validation.Valid;
 import java.util.List;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @RestController
 @RequiredArgsConstructor
 @Slf4j

@@ -11,9 +11,6 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Getter
 @Setter
 @ToString(exclude = {"items", "bookings", "comments"})
